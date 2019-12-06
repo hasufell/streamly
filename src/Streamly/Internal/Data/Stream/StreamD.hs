@@ -3851,7 +3851,6 @@ tapAsync f (Stream step1 state1) = Stream step TapInit
             Stop      -> Stop
 
 -- XXX Is there room for improvement?
--- XXX Not fusing, look into this
 -- | Take last 'n' elements from the stream and discard the rest.
 {-# INLINABLE lastN #-}
 lastN :: (Storable a, MonadIO m) => Int -> Fold m a (Array a)
