@@ -132,6 +132,21 @@ testArraysOf =
                     $ IP.arraysOf 240
                     $ S.fromList list
                 assert (xs == list)
+
+lastN :: Int -> [a] -> [a]
+lastN n l | length l < n = l
+          | otherwise = drop (length l - n) l
+
+testLastN :: Property
+testLastN =
+    forAll (choose (0, maxArrLen)) $ \len ->
+        forAll (choose (0, len)) $ \n ->
+            forAll (vectorOf len (arbitrary :: Gen Int)) $ \list ->
+                monadicIO $ do
+                    xs <- fmap A.toList
+                        $ S.fold (A.lastN n)
+                        $ S.fromList list
+                    assert (xs == lastN n list)
 #endif
 
 main :: IO ()
@@ -154,4 +169,8 @@ main =
 #endif
 #ifdef TEST_ARRAY
         prop "arraysOf concats to original" testArraysOf
+#endif
+#ifdef TEST_ARRAY
+    describe "Fold" $ do
+        prop "lastN" $ testLastN
 #endif
