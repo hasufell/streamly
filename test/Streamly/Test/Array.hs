@@ -153,24 +153,24 @@ main :: IO ()
 main =
     hspec $
     H.parallel $
-    modifyMaxSuccess (const maxTestCount) $
-    describe "Construction" $ do
-        prop "length . writeN n === n" testLength
-        prop "length . fromStreamN n === n" testLengthFromStreamN
-        prop "read . writeN === id " testFoldNUnfold
-        prop "toStream . writeN === id" testFoldNToStream
-        prop "toStreamRev . writeN === reverse" testFoldNToStreamRev
-        prop "read . fromStreamN === id" testFromStreamNUnfold
-        prop "toStream . fromStreamN === id" testFromStreamNToStream
+    modifyMaxSuccess (const maxTestCount) $ do
+        describe "Construction" $ do
+            prop "length . writeN n === n" testLength
+            prop "length . fromStreamN n === n" testLengthFromStreamN
+            prop "read . writeN === id " testFoldNUnfold
+            prop "toStream . writeN === id" testFoldNToStream
+            prop "toStreamRev . writeN === reverse" testFoldNToStreamRev
+            prop "read . fromStreamN === id" testFromStreamNUnfold
+            prop "toStream . fromStreamN === id" testFromStreamNToStream
 #ifndef TEST_SMALL_ARRAY
-        prop "length . fromStream === n" testLengthFromStream
-        prop "toStream . fromStream === id" testFromStreamToStream
-        prop "read . write === id" testFoldUnfold
+            prop "length . fromStream === n" testLengthFromStream
+            prop "toStream . fromStream === id" testFromStreamToStream
+            prop "read . write === id" testFoldUnfold
 #endif
 #ifdef TEST_ARRAY
-        prop "arraysOf concats to original" testArraysOf
+            prop "arraysOf concats to original" testArraysOf
 #endif
 #ifdef TEST_ARRAY
-    describe "Fold" $ do
-        prop "lastN" $ testLastN
+        describe "Fold" $ do
+            prop "lastN" $ testLastN
 #endif

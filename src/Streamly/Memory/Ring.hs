@@ -186,9 +186,12 @@ unsafeFoldRingM ptr f z Ring{..} = do
 -- this would fold the ring starting from the oldest item to the newest item in
 -- the ring.
 {-# INLINE unsafeFoldRingFullM #-}
-unsafeFoldRingFullM :: forall m a b. (Monad m, Storable a)
+unsafeFoldRingFullM :: forall m a b. (MonadIO m, Storable a)
     => Ptr a -> (b -> a -> m b) -> b -> Ring a -> m b
-unsafeFoldRingFullM rh f z rb@Ring{..} = go z rh
+unsafeFoldRingFullM rh f z rb@Ring{..} = do
+    r <- go z rh
+    liftIO $ touchForeignPtr ringStart
+    return r
     where
       go !acc !start = do
             let !x = A.unsafeInlineIO $ peek start
