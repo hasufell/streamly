@@ -32,13 +32,15 @@ module Streamly.Memory.Ring
     ) where
 
 import Control.Exception (assert)
-import Foreign.ForeignPtr (ForeignPtr, withForeignPtr)
+import Foreign.ForeignPtr (ForeignPtr, withForeignPtr, touchForeignPtr)
 import Foreign.ForeignPtr.Unsafe (unsafeForeignPtrToPtr)
 import Foreign.Ptr (plusPtr, minusPtr, castPtr)
 import Foreign.Storable (Storable(..))
 import GHC.ForeignPtr (mallocPlainForeignPtrAlignedBytes)
 import GHC.Ptr (Ptr(..))
 import Prelude hiding (length, concat)
+
+import Control.Monad.IO.Class (MonadIO(..))
 
 import qualified Streamly.Internal.Memory.Array.Types as A
 
@@ -165,9 +167,12 @@ unsafeFoldRing ptr f z Ring{..} =
 
 -- | Like unsafeFoldRing but with a monadic step function.
 {-# INLINE unsafeFoldRingM #-}
-unsafeFoldRingM :: forall m a b. (Monad m, Storable a)
+unsafeFoldRingM :: forall m a b. (MonadIO m, Storable a)
     => Ptr a -> (b -> a -> m b) -> b -> Ring a -> m b
-unsafeFoldRingM ptr f z Ring{..} = go z (unsafeForeignPtrToPtr ringStart) ptr
+unsafeFoldRingM ptr f z Ring{..} = do
+        r <- go z (unsafeForeignPtrToPtr ringStart) ptr
+        liftIO $ touchForeignPtr ringStart
+        return r
     where
       go !acc !start !end
         | start == end = return acc
