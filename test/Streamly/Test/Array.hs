@@ -134,8 +134,7 @@ testArraysOf =
                 assert (xs == list)
 
 lastN :: Int -> [a] -> [a]
-lastN n l | length l < n = l
-          | otherwise = drop (length l - n) l
+lastN n l = drop (length l - n) l
 
 testLastN :: Property
 testLastN =
