@@ -165,16 +165,21 @@ unsafeFoldRing ptr f z Ring{..} =
             x <- peek p
             go (f acc x) (p `plusPtr` sizeOf (undefined :: a)) q
 
+-- XXX Can we remove MonadIO here?
+withForeignPtrM :: MonadIO m => ForeignPtr a -> (Ptr a -> m b) -> m b
+withForeignPtrM fp fn = do
+    r <- fn $ unsafeForeignPtrToPtr fp
+    liftIO $ touchForeignPtr fp
+    return r
+
 -- | Like unsafeFoldRing but with a monadic step function.
 {-# INLINE unsafeFoldRingM #-}
 unsafeFoldRingM :: forall m a b. (MonadIO m, Storable a)
     => Ptr a -> (b -> a -> m b) -> b -> Ring a -> m b
-unsafeFoldRingM ptr f z Ring{..} = do
-        r <- go z (unsafeForeignPtrToPtr ringStart) ptr
-        liftIO $ touchForeignPtr ringStart
-        return r
-    where
-      go !acc !start !end
+unsafeFoldRingM ptr f z Ring {..} =
+    withForeignPtrM ringStart $ \x -> go z x ptr
+  where
+    go !acc !start !end
         | start == end = return acc
         | otherwise = do
             let !x = A.unsafeInlineIO $ peek start
@@ -188,15 +193,13 @@ unsafeFoldRingM ptr f z Ring{..} = do
 {-# INLINE unsafeFoldRingFullM #-}
 unsafeFoldRingFullM :: forall m a b. (MonadIO m, Storable a)
     => Ptr a -> (b -> a -> m b) -> b -> Ring a -> m b
-unsafeFoldRingFullM rh f z rb@Ring{..} = do
-    r <- go z rh
-    liftIO $ touchForeignPtr ringStart
-    return r
-    where
-      go !acc !start = do
-            let !x = A.unsafeInlineIO $ peek start
-            acc' <- f acc x
-            let ptr = advance rb start
-            if ptr == rh
+unsafeFoldRingFullM rh f z rb@Ring {..} =
+    withForeignPtrM ringStart $ \_ -> go z rh
+  where
+    go !acc !start = do
+        let !x = A.unsafeInlineIO $ peek start
+        acc' <- f acc x
+        let ptr = advance rb start
+        if ptr == rh
             then return acc'
             else go acc' ptr
