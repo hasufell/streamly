@@ -1,5 +1,5 @@
 packages:
-  ./streamly.cabal
+  ./
 
 package streamly
   ghc-options: -Werror

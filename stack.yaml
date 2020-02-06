@@ -7,6 +7,8 @@ extra-deps:
     - Chart-diagrams-1.9.2
     - bench-show-0.2.2
     - inspection-testing-0.4.2.1
+    - git: https://github.com/composewell/fusion-plugin
+      commit: 5f1b1b92aeb87d696c704e165242063a481f4959
 
 #allow-newer: true
 flags: {}
